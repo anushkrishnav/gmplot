@@ -191,7 +191,7 @@ def _get_hex_color(color):
         if color in _HTML_COLOR_CODES:
             color = _HTML_COLOR_CODES[color]
         else:
-            warnings.warn("Color '%s' isn't supported." % color)
+            warnings.warn("Color '%s' isn't supported; defaulting to black." % color)
             color = '#000000'
 
     return color.upper()

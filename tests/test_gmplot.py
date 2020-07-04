@@ -15,14 +15,14 @@ class GMPlotTest(unittest.TestCase):
 #       it doesn't test if the resulting output can actually be rendered properly in a browser.
 class RouteTest(unittest.TestCase):
     def test_write(self):
-        route = _Route((37.770776,-122.461689), (37.780776,-122.461689))
+        route = _Route((37.770776,-122.461689), (37.780776,-122.461689), 6)
 
         with StringIO() as f:
             with _Writer(f) as writer:
                 route.write(writer)
 
     def test_write_waypoints(self):
-        route = _Route((37.770776,-122.461689), (37.780776,-122.461689), waypoints=[(37.431257,-122.133121)])
+        route = _Route((37.770776,-122.461689), (37.780776,-122.461689), 6, waypoints=[(37.431257,-122.133121)])
 
         with StringIO() as f:
             with _Writer(f) as writer:

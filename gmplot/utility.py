@@ -8,6 +8,8 @@ import warnings
 import base64
 import re
 
+from gmplot.color import _get_hex_color
+
 _INDENT_LEVEL = 4
 _INDENT = ' ' * _INDENT_LEVEL
 # Note: This should match a single indent used in the actual source code.
@@ -33,9 +35,12 @@ if sys.version_info.major == 2:
 else:
     from io import StringIO # pragma: no coverage
 
-def _get_value(dict, keys, default=None, get_key=False, pop=False):
+def _get_value(dict, keys, default=None, get_key=False):
     '''
     Get the value of any of the provided keys.
+
+    Note: Only use `dict.get()` if you have a single key and no optional parameters set,
+          otherwise, prefer this function.
 
     Args:
         dict (dict): Dict to obtain the value from.
@@ -46,7 +51,6 @@ def _get_value(dict, keys, default=None, get_key=False, pop=False):
     Args:
         default: Value to return if none of the keys have a value. Defaults to None.
         get_key (bool): Whether or not to also return the key associated with the returned value. Defaults to False.
-        pop (bool): Whether or not to pop the element if it's found. Defaults to False.
 
     Returns:
         any or (str, any): Value of the first valid key, or a tuple of the key and its value if ``get_key`` is True.
@@ -55,9 +59,56 @@ def _get_value(dict, keys, default=None, get_key=False, pop=False):
     for key in keys:
         value = dict.get(key)
         if value is not None:
-            if pop: del dict[key]
             return value if not get_key else (key, value)
     return default if not get_key else (None, default)
+
+def _get_options(parameters, parameter_map):
+    '''
+    Get a collection of usable (formatted) options from the provided parameters and the associated parameter map.
+
+    Args:
+        parameters (dict): Parameter names and their values.
+        parameter_map (dict): Parameter names and their associated tuple:
+            [0] ([str]): Full list of parameter names that correspond to this parameter.
+            [1] (str): (optional) Default value for this parameter.
+
+    Example::
+
+        parameters = {
+            'c': 'orange',
+            'label': 'Point of interest'
+        }
+
+        options = _get_options(parameters, {
+            'color': (['color', 'c'], 'red'),
+            'title': (['title'],),
+            'label': (['label'],),
+            'draggable': (['draggable'], False)
+        })
+
+        print(options)
+
+    .. code-block::
+
+        -> {
+               'color': '#FFA500',
+               'draggable': False,
+               'label': 'Point of interest'
+           }
+    '''
+    options = {}
+    for name, info in parameter_map.items():
+        value = _get_value(parameters, *info)
+        if value is not None:
+            options[name] = value
+
+    for key, value in options.items():
+        if 'color' in key:
+            options[key] = _get_hex_color(options[key])
+
+    if 'travel_mode' in options: options['travel_mode'] = options['travel_mode'].upper()
+
+    return options
 
 def _format_LatLng(lat, lng, precision):
     '''
